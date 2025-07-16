@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeoGuardian Chat - AI Neonatal Care Assistant</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
+    <style>
+        /* Dark mode variables */
+        :root {
+            --background-color: #f0f4f8;
+            --card-color: #ffffff;
+            --text-primary: #2c3e50;
+            --text-secondary: #34495e;
+            --border-color: #dce7f1;
+            --hover-color: rgba(0, 119, 204, 0.08);
+            --shadow-color: rgba(0, 119, 204, 0.1);
+        }
+
+        body.dark-mode {
+            --background-color: #1a1a2e;
+            --card-color: #16213e;
+            --text-primary: #e0e0e0;
+            --text-secondary: #b0b0b0;
+            --border-color: #2a2a4e;
+            --hover-color: rgba(0, 119, 204, 0.2);
+            --shadow-color: rgba(0, 0, 0, 0.2);
+        }
+
+        /* Toggle button */
+        .dark-toggle {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+            color: var(--text-primary);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: var(--background-color);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .chat-header {
+            background: var(--card-color);
+            padding: 20px 40px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .chat-header h1 {
+            color: var(--text-primary);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .back-button {
+            color: var(--primary-color);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            padding: 8px 16px;
+            border-radius: 20px;
+            background: rgba(33, 150, 243, 0.1);
+        }
+
+        .back-button:hover {
+            transform: translateX(-5px);
+            background: rgba(33, 150, 243, 0.15);
+        }
+
+        .chat-container {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* Enhanced text wrapping to prevent overflow */
+        .message {
+            max-width: 75%;
+            padding: 15px 20px;
+            border-radius: 16px;
+            position: relative;
+            animation: fadeIn 0.3s ease-out;
+            line-height: 1.6;
+            font-size: 15px;
+            margin-bottom: 20px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            hyphens: auto;
+        }
+
+        /* Ensure normal text flow in messages */
+        .bot-message {
+            margin-right: auto;
+            margin-left: 0;
+            background: var(--card-color);
+            border-radius: 16px 16px 16px 0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            max-width: 70%;
+            white-space: normal;
+            display: block;
+        }
+
+        .analysis-card {
+            display: block;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        .response-section {
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .response-list {
+            margin: 10px 0 15px 20px;
+            padding: 0;
+            list-style-type: disc;
+        }
+
+        .response-list li {
+            margin-bottom: 8px;
+            word-wrap: break-word;
+        }
+
+        .user-message {
+            margin-left: auto;
+            margin-right: 0;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 16px 16px 0 16px;
+            box-shadow: 0 4px 15px var(--shadow-color);
+            font-weight: 500;
+            max-width: 75%;
+        }
+
+        /* Analysis card updates */
+        .risk-level {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.95em;
+            margin-bottom: 15px;
+            color: white;
+        }
+
+        .risk-URGENT { background: var(--urgent-color); }
+        .risk-HIGH { background: var(--high-color); }
+        .risk-MEDIUM { background: var(--medium-color); }
+        .risk-LOW { background: var(--low-color); }
+
+        .section {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+        }
+
+        .section:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .section-title {
+            font-size: 1.05em;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+        }
+
+        .section-content {
+            color: var(--text-secondary);
+            font-size: 0.95em;
+            line-height: 1.5;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            hyphens: auto;
+        }
+
+        .action-list {
+            margin: 10px 0;
+            list-style: none;
+        }
+
+        .action-list li {
+            padding: 8px 0 8px 30px;
+            position: relative;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            font-size: 0.95em;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .action-list li::before {
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        /* Update seek-care-urgent for vertical layout */
+        .seek-care-urgent {
+            margin-top: 10px;
+            padding: 12px 15px;
+            font-size: 0.95em;
+            background: rgba(230, 57, 70, 0.05);
+            border-radius: 8px;
+            color: var(--urgent-color);
+            font-weight: 500;
+            display: block;
+        }
+
+        .seek-care-urgent .response-section {
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .seek-care-urgent .risk-level {
+            margin-bottom: 15px;
+        }
+
+        .seek-care-urgent .response-list {
+            margin: 10px 0 15px 20px;
+        }
+
+        .typing-indicator {
+            display: none;
+            padding: 15px 20px;
+            background: var(--card-color);
+            border-radius: 16px;
+            margin-right: auto;
+            color: var(--text-secondary);
+            font-style: italic;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            animation: heartbeat 1.5s infinite;
+            position: relative;
+        }
+
+        @keyframes heartbeat {
+            0% { transform: scale(1); }
+            14% { transform: scale(1.05); }
+            28% { transform: scale(1); }
+            42% { transform: scale(1.05); }
+            70% { transform: scale(1); }
+        }
+
+        .typing-indicator::after {
+            content: '❤️';
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
+        }
+
+        .input-container {
+            padding: 20px;
+            background: var(--card-color);
+            border-top: 1px solid var(--border-color);
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 15px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        textarea {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            resize: none;
+            font-size: 15px;
+            font-family: 'Inter', sans-serif;
+            min-height: 50px;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        button {
+            padding: 0 25px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        button:hover {
+            background: #005fa3;
+        }
+
+        .language-selector {
+            padding: 8px 15px;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Voice input button */
+        .voice-button {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 0 15px;
+            cursor: pointer;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+        }
+
+        .voice-button.recording {
+            background: var(--urgent-color);
+        }
+
+        /* Map container style */
+        #map {
+            height: 300px;
+            width: 100%;
+            margin-top: 15px;
+            border-radius: 8px;
+            display: none;
+        }
+
+        /* Feedback buttons */
+        .feedback {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .feedback button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .chat-header {
+                padding: 15px;
+            }
+            .chat-container {
+                padding: 15px;
+            }
+            .message {
+                max-width: 90%;
+            }
+            .input-container {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-header">
+        <a href="/" class="back-button">← Back to Home</a>
+        <h1>NeoGuardian Assistant</h1>
+        <button class="dark-toggle" onclick="toggleDarkMode()">💡</button>
+        <button onclick="downloadChat()" title="Download Chat">📥</button>
+        <select class="language-selector" onchange="changeLanguage(this.value)">
+            <option value="en">English</option>
+            <option value="yo">Yoruba</option>
+            <option value="ha">Hausa</option>
+            <option value="pcm">Pidgin</option>
+        </select>
+    </div>
+
+    <div class="chat-container" id="chatBox">
+        <div class="message bot-message">
+            <div class="section">
+                <div class="section-title">Welcome to NeoGuardian! 👶</div>
+                <div class="section-content">
+                    <p>I'm here to help assess your baby's symptoms. Please describe what you've noticed, including:</p>
+                    <div class="welcome-icon-list">
+                        <div class="welcome-icon-item">🌡️ Temperature/fever</div>
+                        <div class="welcome-icon-item">🫁 Breathing patterns</div>
+                        <div class="welcome-icon-item">🍼 Feeding behavior</div>
+                        <div class="welcome-icon-item">👶 Skin color or rashes</div>
+                        <div class="welcome-icon-item">😴 Sleep patterns</div>
+                        <div class="welcome-icon-item">😢 Crying or irritability</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="typing-indicator" id="typingIndicator">
+        AI is analyzing symptoms...
+    </div>
+
+    <div class="input-container">
+        <div class="input-wrapper">
+            <textarea id="symptomsInput" placeholder="Describe your baby's symptoms here..." rows="2" list="symptomSuggestions"></textarea>
+            <button class="voice-button" onclick="toggleVoiceInput()" id="voiceButton">🎤</button>
+            <datalist id="symptomSuggestions">
+                <option value="Fever">
+                <option value="Rash">
+                <option value="Crying excessively">
+                <option value="Difficulty breathing">
+                <option value="Vomiting">
+                <option value="Diarrhea">
+                <option value="Lethargy">
+                <option value="Poor feeding">
+                <option value="Jaundice">
+                <option value="Cough">
+                <option value="Runny nose">
+                <option value="Seizures">
+                <option value="Swelling">
+                <option value="Bleeding">
+                <option value="Blue skin">
+            </datalist>
+            <button onclick="analyzeSymptoms()">Analyze</button>
+        </div>
+    </div>
+
+    <script>
+        let currentLanguage = 'en';
+
+        marked.setOptions({
+            highlight: function(code) {
+                return hljs.highlightAuto(code).value;
+            }
+        });
+
+        function addMessage(message, isUser) {
+            const chatBox = document.getElementById('chatBox');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
+            
+            if (!isUser) {
+                try {
+                    // Try to parse the message as JSON
+                    const analysis = JSON.parse(message);
+                    messageDiv.innerHTML = formatAnalysis(analysis);
+                } catch (e) {
+                    // If not JSON, render as markdown
+                    messageDiv.innerHTML = marked.parse(message);
+                }
+            } else {
+                // For user messages, display the text directly with proper word wrapping
+                messageDiv.style.whiteSpace = 'pre-wrap';
+                messageDiv.textContent = message;
+            }
+            
+            chatBox.appendChild(messageDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        /* Update formatAnalysis to make it more like a normal response with inline emojis */
+        function formatAnalysis(analysis) {
+            const riskClass = `risk-${analysis.risk_level}`;
+            const isUrgent = analysis.risk_level === 'URGENT' || analysis.risk_level === 'HIGH';
+            
+            let riskEmoji;
+            switch(analysis.risk_level) {
+                case 'URGENT': riskEmoji = '🚨'; break;
+                case 'HIGH': riskEmoji = '⚠️'; break;
+                case 'MEDIUM': riskEmoji = '⚡'; break;
+                case 'LOW': riskEmoji = 'ℹ️'; break;
+                default: riskEmoji = '❓';
+            }
+
+            let responseHTML = `
+                <div class="risk-level ${riskClass}">
+                    ${riskEmoji} Risk Level: ${analysis.risk_level}
+                </div>
+
+                <div class="response-section">
+                    💊 <strong>Recommendation:</strong> ${analysis.recommendation}
+                </div>
+
+                <div class="response-section">
+                    🔍 <strong>Symptoms Noted:</strong> ${analysis.symptoms_identified.join(', ')}
+                </div>
+
+                <div class="response-section">
+                    ⚡ <strong>Immediate Actions:</strong>
+                    <ul class="response-list">
+                        ${analysis.immediate_actions.map(action => `<li>${action}</li>`).join('')}
+                    </ul>
+                </div>
+
+                ${analysis.first_aid_suggestions && analysis.first_aid_suggestions.length > 0 ? `
+                <div class="response-section">
+                    🩹 <strong>First Aid Suggestions:</strong>
+                    <ul class="response-list">
+                        ${analysis.first_aid_suggestions.map(suggestion => `<li>${suggestion}</li>`).join('')}
+                    </ul>
+                </div>
+                ` : ''}
+
+                <div class="response-section">
+                    🏥 <strong>When to Seek Care:</strong> ${analysis.seek_care_within}
+                </div>
+            `;
+
+            /* Feedback buttons */
+            responseHTML += `
+                <div class="feedback">
+                    <button onclick="submitFeedback(true)" title="Helpful">👍</button>
+                    <button onclick="submitFeedback(false)" title="Not Helpful">👎</button>
+                </div>
+            `;
+
+            if (isUrgent) {
+                responseHTML += `
+                    <button onclick="showNearbyClinics()">Find Nearby Clinics 🗺️</button>
+                    <div id="map"></div>
+                `;
+            }
+
+            return `<div class="analysis-card ${isUrgent ? 'urgent' : ''}">${responseHTML}</div>`;
+        }
+
+        function showTypingIndicator() {
+            const indicator = document.getElementById('typingIndicator');
+            indicator.style.display = 'block';
+        }
+
+        function hideTypingIndicator() {
+            const indicator = document.getElementById('typingIndicator');
+            indicator.style.display = 'none';
+        }
+
+        function analyzeSymptoms() {
+            const symptoms = document.getElementById('symptomsInput').value.trim();
+            if (!symptoms) return;
+
+            addMessage(symptoms, true);
+            document.getElementById('symptomsInput').value = '';
+            showTypingIndicator();
+
+            fetch('/analyze', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ 
+                    symptoms: symptoms,
+                    language: currentLanguage
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideTypingIndicator();
+                addMessage(data.analysis, false);
+            })
+            .catch(error => {
+                hideTypingIndicator();
+                addMessage('Error analyzing symptoms. Please try again.', false);
+                console.error('Error:', error);
+            });
+        }
+
+        function changeLanguage(language) {
+            currentLanguage = language;
+        }
+
+        // Allow Enter key to submit
+        document.getElementById('symptomsInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                analyzeSymptoms();
+            }
+        });
+
+        // Initialize syntax highlighting
+        hljs.highlightAll();
+
+        // JavaScript for toggle
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            const toggle = document.querySelector('.dark-toggle');
+            toggle.textContent = document.body.classList.contains('dark-mode') ? '☀️' : '💡';
+        }
+
+        /* JavaScript for download */
+        function downloadChat() {
+            const chatBox = document.getElementById('chatBox');
+            let chatText = '';
+            chatBox.querySelectorAll('.message').forEach(msg => {
+                const isUser = msg.classList.contains('user-message');
+                chatText += (isUser ? 'You: ' : 'AI: ') + msg.textContent.trim() + '\n\n';
+            });
+            const blob = new Blob([chatText], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'neoguardian_chat.txt';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        /* JavaScript for voice input */
+        let recognition;
+        let isRecording = false;
+
+        function toggleVoiceInput() {
+            if (!('webkitSpeechRecognition' in window)) {
+                alert('Speech recognition not supported in this browser. Try Chrome.');
+                return;
+            }
+
+            if (!recognition) {
+                recognition = new webkitSpeechRecognition();
+                recognition.continuous = false;
+                recognition.interimResults = true;
+                recognition.lang = currentLanguage === 'en' ? 'en-US' : currentLanguage; // Adjust based on language
+
+                recognition.onresult = function(event) {
+                    const transcript = event.results[0][0].transcript;
+                    document.getElementById('symptomsInput').value += transcript + ' ';
+                };
+
+                recognition.onerror = function(event) {
+                    console.error('Speech recognition error', event.error);
+                };
+
+                recognition.onend = function() {
+                    isRecording = false;
+                    document.getElementById('voiceButton').classList.remove('recording');
+                };
+            }
+
+            if (isRecording) {
+                recognition.stop();
+            } else {
+                recognition.start();
+                isRecording = true;
+                document.getElementById('voiceButton').classList.add('recording');
+            }
+        }
+
+        /* JavaScript for map */
+        let map;
+        function initMap() {
+            // Map initialized but hidden
+        }
+
+        function showNearbyClinics() {
+            const mapDiv = document.getElementById('map');
+            mapDiv.style.display = 'block';
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(position => {
+                    const userLocation = { lat: position.coords.latitude, lng: position.coords.longitude };
+                    map = new google.maps.Map(mapDiv, {
+                        center: userLocation,
+                        zoom: 14
+                    });
+                    new google.maps.Marker({ position: userLocation, map, title: 'Your Location' });
+
+                    // Search for nearby clinics
+                    const request = {
+                        location: userLocation,
+                        radius: '5000',
+                        type: ['hospital'],
+                        keyword: 'pediatric'
+                    };
+                    const service = new google.maps.places.PlacesService(map);
+                    service.nearbySearch(request, (results, status) => {
+                        if (status === google.maps.places.PlacesServiceStatus.OK) {
+                            results.forEach(place => {
+                                new google.maps.Marker({
+                                    position: place.geometry.location,
+                                    map,
+                                    title: place.name
+                                });
+                            });
+                        }
+                    });
+                });
+            } else {
+                alert('Geolocation not supported');
+            }
+        }
+
+        /* JavaScript for feedback */
+        function submitFeedback(isHelpful) {
+            // For now, just alert; can send to server later
+            alert(isHelpful ? 'Thanks for the positive feedback!' : 'Sorry it wasn\'t helpful. We\'ll improve!');
+            // TODO: Send to server via fetch('/feedback', { method: 'POST', body: JSON.stringify({ isHelpful }) });
+        }
+    </script>
+</body>
+</html> 

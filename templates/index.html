@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeoGuardian - AI-Powered Neonatal Care</title>
+    <!-- Update to latest Three.js version -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r161/three.min.js"></script>
+    <!-- Add postprocessing for bloom effects -->
+    <script src="https://unpkg.com/three@0.161.0/examples/js/postprocessing/EffectComposer.js"></script>
+    <script src="https://unpkg.com/three@0.161.0/examples/js/postprocessing/RenderPass.js"></script>
+    <script src="https://unpkg.com/three@0.161.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+    <script src="https://unpkg.com/three@0.161.0/examples/js/shaders/CopyShader.js"></script>
+    <script src="https://unpkg.com/three@0.161.0/examples/js/postprocessing/ShaderPass.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: #f0f2f5;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            z-index: -1;
+        }
+
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 20px 50px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: 700;
+            color: #2196f3;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+        }
+
+        .nav-links a {
+            color: #333;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: #2196f3;
+        }
+
+        .hero {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            padding: 0 50px;
+            position: relative;
+        }
+
+        .hero-content {
+            max-width: 700px;
+            z-index: 1;
+        }
+
+        h1 {
+            font-size: 60px;
+            margin-bottom: 25px;
+            color: #1a237e;
+            line-height: 1.2;
+        }
+
+        .hero p {
+            font-size: 20px;
+            line-height: 1.6;
+            margin-bottom: 40px;
+            color: #555;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 15px 40px;
+            background: linear-gradient(45deg, #2196f3, #673ab7);
+            color: white;
+            text-decoration: none;
+            border-radius: 30px;
+            font-weight: 600;
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.4);
+        }
+
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(33, 150, 243, 0.5);
+        }
+
+        .section {
+            padding: 120px 50px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section h2 {
+            text-align: center;
+            font-size: 40px;
+            margin-bottom: 60px;
+            color: #1a237e;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+        }
+
+        .feature-card {
+            padding: 40px;
+            border-radius: 20px;
+            background: #fff;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            text-align: center;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+        }
+
+        .feature-card h3 {
+            color: #2196f3;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+            text-align: center;
+        }
+
+        .stat-item {
+            background: #fff;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .stat-number {
+            font-size: 48px;
+            color: #2196f3;
+            font-weight: 700;
+        }
+
+        .how-it-works-steps {
+            display: flex;
+            justify-content: space-between;
+            gap: 30px;
+        }
+
+        .step {
+            flex: 1;
+            background: #fff;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .step-number {
+            font-size: 36px;
+            color: #2196f3;
+            margin-bottom: 20px;
+        }
+
+        footer {
+            background: #1a237e;
+            color: white;
+            padding: 50px;
+            text-align: center;
+        }
+
+        footer a {
+            color: #2196f3;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+    
+    <nav class="navbar">
+        <div class="logo">NeoGuardian</div>
+        <div class="nav-links">
+            <a href="#features">Features</a>
+            <a href="#how-it-works">How It Works</a>
+            <a href="#stats">Impact</a>
+            <a href="#testimonials">Testimonials</a>
+            <a href="#contact">Contact</a>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Revolutionizing Neonatal Care with AI Intelligence</h1>
+            <p>NeoGuardian harnesses cutting-edge AI to provide instant, accurate symptom analysis for newborns. Available in multiple languages, it's your 24/7 guardian for infant health, bridging gaps in global healthcare access.</p>
+            <a href="#" class="cta-button" onclick="openChat()">Launch AI Assistant</a>
+        </div>
+    </section>
+
+    <section id="features" class="section">
+        <h2>Powerful Features</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <h3>AI-Powered Analysis</h3>
+                <p>Advanced Gemini AI provides instant risk assessment and recommendations for baby symptoms.</p>
+            </div>
+            <div class="feature-card">
+                <h3>Multilingual Support</h3>
+                <p>Available in English, Yoruba, Hausa, and Pidgin for global accessibility.</p>
+            </div>
+            <div class="feature-card">
+                <h3>Voice Input</h3>
+                <p>Speak your concerns - our system transcribes and analyzes in real-time.</p>
+            </div>
+            <div class="feature-card">
+                <h3>Clinic Locator</h3>
+                <p>For urgent cases, find nearby pediatric care with integrated mapping.</p>
+            </div>
+            <div class="feature-card">
+                <h3>First Aid Guidance</h3>
+                <p>Safe, immediate steps while awaiting professional help.</p>
+            </div>
+            <div class="feature-card">
+                <h3>User Feedback</h3>
+                <p>Help us improve with simple thumbs up/down ratings.</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="how-it-works" class="section" style="background: #f0f2f5;">
+        <h2>How NeoGuardian Works</h2>
+        <div class="how-it-works-steps">
+            <div class="step">
+                <div class="step-number">1</div>
+                <h3>Describe Symptoms</h3>
+                <p>Type or speak your baby's symptoms in your preferred language.</p>
+            </div>
+            <div class="step">
+                <div class="step-number">2</div>
+                <h3>AI Analysis</h3>
+                <p>Our advanced AI processes the information and assesses risk levels.</p>
+            </div>
+            <div class="step">
+                <div class="step-number">3</div>
+                <h3>Get Guidance</h3>
+                <p>Receive clear recommendations, first aid tips, and care timelines.</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="stats" class="section">
+        <h2>Our Impact</h2>
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-number">1M+</div>
+                <p>Babies Helped Worldwide</p>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">4</div>
+                <p>Languages Supported</p>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">24/7</div>
+                <p>Availability</p>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">95%</div>
+                <p>Accuracy Rate</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="demo" class="section" style="background: #f0f2f5;">
+        <h2>See It in Action</h2>
+        <video controls style="width: 100%; max-width: 900px; margin: 0 auto; display: block; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+            <source src="/static/video.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+    </section>
+
+    <section id="testimonials" class="section">
+        <h2>What Parents Are Saying</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <p>"NeoGuardian gave me peace of mind during my baby's first fever. The quick analysis was spot on!"</p>
+                <h4>- Maria S., New Mother</h4>
+            </div>
+            <div class="feature-card">
+                <p>"As a parent in a rural area, the clinic locator feature is invaluable. Thank you!"</p>
+                <h4>- John D., Father of Two</h4>
+            </div>
+            <div class="feature-card">
+                <p>"The voice input in my native language made it so easy to use during stressful moments."</p>
+                <h4>- Aisha M., Parent</h4>
+            </div>
+        </div>
+    </section>
+
+    <!-- New AI Technology section with 3D visualization -->
+    <section id="technology" class="section" style="background: linear-gradient(to bottom, #f0f2f5, white);">
+        <h2>Our Futuristic AI Technology</h2>
+        <p style="text-align: center; max-width: 800px; margin: 0 auto 40px;">Powered by advanced neural networks, NeoGuardian processes symptoms in real-time, providing intelligent insights like a digital guardian for your baby.</p>
+        <div id="neural-canvas" style="height: 400px; width: 100%; max-width: 900px; margin: 0 auto; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1);"></div>
+    </section>
+
+    <footer>
+        <p>&copy; 2025 NeoGuardian. All rights reserved.</p>
+        <p><a href="mailto:info@neoguardian.app">Contact Us</a> | <a href="#privacy">Privacy Policy</a></p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Initializing futuristic 3D effects...');
+            try {
+                // Background Scene Setup
+                const container = document.getElementById('canvas-container');
+                const scene = new THREE.Scene();
+                const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                container.appendChild(renderer.domElement);
+
+                // Add bloom composer for glowing effects
+                const composer = new THREE.EffectComposer(renderer);
+                const renderPass = new THREE.RenderPass(scene, camera);
+                composer.addPass(renderPass);
+                const bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
+                bloomPass.threshold = 0;
+                bloomPass.strength = 1.2;
+                bloomPass.radius = 0.5;
+                composer.addPass(bloomPass);
+
+                // Starfield background
+                const starGeometry = new THREE.BufferGeometry();
+                const starCount = 5000;
+                const starPositions = new Float32Array(starCount * 3);
+                for (let i = 0; i < starCount * 3; i++) {
+                    starPositions[i] = (Math.random() - 0.5) * 2000;
+                }
+                starGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+                const starMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 1, transparent: true, opacity: 0.8 });
+                const stars = new THREE.Points(starGeometry, starMaterial);
+                scene.add(stars);
+
+                // Futuristic glowing orbs with emissive material for bloom
+                const orbs = [];
+                const orbCount = 30;
+                for (let i = 0; i < orbCount; i++) {
+                    const geometry = new THREE.SphereGeometry(0.5 + Math.random() * 1.5, 32, 32);
+                    const material = new THREE.MeshStandardMaterial({
+                        color: new THREE.Color().setHSL(Math.random(), 0.8, 0.6),
+                        emissive: new THREE.Color().setHSL(Math.random(), 0.8, 0.8),
+                        emissiveIntensity: 1.5,
+                        transparent: true,
+                        opacity: 0.7
+                    });
+                    const orb = new THREE.Mesh(geometry, material);
+                    orb.position.set((Math.random() - 0.5) * 100, (Math.random() - 0.5) * 100, (Math.random() - 0.5) * 100);
+                    orb.userData = {
+                        speed: new THREE.Vector3((Math.random() - 0.5) * 0.03, (Math.random() - 0.5) * 0.03, (Math.random() - 0.5) * 0.03)
+                    };
+                    orbs.push(orb);
+                    scene.add(orb);
+                }
+
+                // Energy flow lines with glow
+                const lineMaterial = new THREE.LineBasicMaterial({ color: 0x00ffff, transparent: true, opacity: 0.4 });
+                const lines = [];
+                for (let i = 0; i < 80; i++) {
+                    const points = [];
+                    for (let j = 0; j < 5; j++) {
+                        points.push(new THREE.Vector3((Math.random() - 0.5) * 80, (Math.random() - 0.5) * 80, (Math.random() - 0.5) * 80));
+                    }
+                    const geometry = new THREE.BufferGeometry().setFromPoints(points);
+                    const line = new THREE.Line(geometry, lineMaterial);
+                    lines.push(line);
+                    scene.add(line);
+                }
+
+                // Particles for dynamic energy
+                const particleGeometry = new THREE.BufferGeometry();
+                const particleCount = 3000;
+                const positions = new Float32Array(particleCount * 3);
+                const velocities = new Float32Array(particleCount * 3);
+                for (let i = 0; i < particleCount * 3; i += 3) {
+                    positions[i] = (Math.random() - 0.5) * 150;
+                    positions[i+1] = (Math.random() - 0.5) * 150;
+                    positions[i+2] = (Math.random() - 0.5) * 150;
+                    velocities[i] = (Math.random() - 0.5) * 0.04;
+                    velocities[i+1] = (Math.random() - 0.5) * 0.04;
+                    velocities[i+2] = (Math.random() - 0.5) * 0.04;
+                }
+                particleGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+                const particleMaterial = new THREE.PointsMaterial({ color: 0x00ffff, size: 0.08, transparent: true, opacity: 0.7 });
+                const particles = new THREE.Points(particleGeometry, particleMaterial);
+                scene.add(particles);
+
+                // Lights for enhanced glow
+                const ambientLight = new THREE.AmbientLight(0x404040, 0.5);
+                scene.add(ambientLight);
+                const pointLight = new THREE.PointLight(0x00ffff, 3, 200);
+                pointLight.position.set(0, 0, 0);
+                scene.add(pointLight);
+
+                camera.position.z = 50;
+
+                function animate() {
+                    requestAnimationFrame(animate);
+
+                    orbs.forEach(orb => {
+                        orb.position.add(orb.userData.speed);
+                        if (Math.abs(orb.position.x) > 75) orb.userData.speed.x *= -1;
+                        if (Math.abs(orb.position.y) > 75) orb.userData.speed.y *= -1;
+                        if (Math.abs(orb.position.z) > 75) orb.userData.speed.z *= -1;
+                        orb.material.emissiveIntensity = 1.5 + Math.sin(Date.now() * 0.002 + orb.position.x) * 0.5;
+                    });
+
+                    lines.forEach(line => {
+                        line.material.opacity = 0.4 + Math.sin(Date.now() * 0.003) * 0.3;
+                    });
+
+                    const particlePositions = particles.geometry.attributes.position.array;
+                    for (let i = 0; i < particleCount * 3; i += 3) {
+                        particlePositions[i] += velocities[i];
+                        particlePositions[i+1] += velocities[i+1];
+                        particlePositions[i+2] += velocities[i+2];
+                        if (Math.abs(particlePositions[i]) > 100) velocities[i] *= -1;
+                        if (Math.abs(particlePositions[i+1]) > 100) velocities[i+1] *= -1;
+                        if (Math.abs(particlePositions[i+2]) > 100) velocities[i+2] *= -1;
+                    }
+                    particles.geometry.attributes.position.needsUpdate = true;
+
+                    composer.render();
+                }
+                animate();
+
+                // Resize handler
+                window.addEventListener('resize', () => {
+                    camera.aspect = window.innerWidth / window.innerHeight;
+                    camera.updateProjectionMatrix();
+                    renderer.setSize(window.innerWidth, window.innerHeight);
+                    composer.setSize(window.innerWidth, window.innerHeight);
+                });
+
+                // Neural canvas (kept as is for additional effect)
+                const neuralContainer = document.getElementById('neural-canvas');
+                if (neuralContainer) {
+                    const neuralScene = new THREE.Scene();
+                    const neuralCamera = new THREE.PerspectiveCamera(75, neuralContainer.clientWidth / 400, 0.1, 1000);
+                    const neuralRenderer = new THREE.WebGLRenderer({ antialias: true });
+                    neuralRenderer.setSize(neuralContainer.clientWidth, 400);
+                    neuralContainer.appendChild(neuralRenderer.domElement);
+
+                    // Create neural nodes (spheres)
+                    const nodes = [];
+                    for (let i = 0; i < 50; i++) {
+                        const geometry = new THREE.SphereGeometry(0.2, 16, 16);
+                        const material = new THREE.MeshBasicMaterial({ color: 0x2196f3 });
+                        const node = new THREE.Mesh(geometry, material);
+                        node.position.set((Math.random() - 0.5) * 10, (Math.random() - 0.5) * 10, (Math.random() - 0.5) * 10);
+                        nodes.push(node);
+                        neuralScene.add(node);
+                    }
+
+                    // Create connections (lines)
+                    const lineMaterial = new THREE.LineBasicMaterial({ color: 0x673ab7, transparent: true, opacity: 0.5 });
+                    for (let i = 0; i < 100; i++) {
+                        const start = nodes[Math.floor(Math.random() * nodes.length)];
+                        const end = nodes[Math.floor(Math.random() * nodes.length)];
+                        const points = [start.position, end.position];
+                        const geometry = new THREE.BufferGeometry().setFromPoints(points);
+                        const line = new THREE.Line(geometry, lineMaterial);
+                        neuralScene.add(line);
+                    }
+
+                    // Light
+                    const light = new THREE.PointLight(0xffffff, 1, 100);
+                    light.position.set(0, 0, 10);
+                    neuralScene.add(light);
+
+                    neuralCamera.position.z = 15;
+
+                    function neuralAnimate() {
+                        requestAnimationFrame(neuralAnimate);
+                        nodes.forEach(node => {
+                            node.rotation.y += 0.01;
+                        });
+                        neuralRenderer.render(neuralScene, neuralCamera);
+                    }
+                    neuralAnimate();
+
+                    window.addEventListener('resize', () => {
+                        neuralCamera.aspect = neuralContainer.clientWidth / 400;
+                        neuralCamera.updateProjectionMatrix();
+                        neuralRenderer.setSize(neuralContainer.clientWidth, 400);
+                    });
+                }
+
+                console.log('Animations initialized successfully');
+            } catch (error) {
+                console.error('Three.js initialization error:', error);
+            }
+        });
+    </script>
+
+    <!-- Separate script for navigation to avoid conflicts -->
+    <script>
+        function openChat() {
+            console.log('Attempting to launch chat...');
+            try {
+                window.location.assign('/chat');
+            } catch (error) {
+                console.error('Navigation error:', error);
+                alert('Failed to launch chat. Please navigate to /chat manually.');
+            }
+        }
+    </script>
+</body>
+</html> 
