@@ -11,7 +11,7 @@ CORS(app)
 
 # Configure Gemini API
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
-genai.configure(api_key=GOOGLE_API_KEY)
+genai.configure(api_key=GEMINI_API_KEY)
 
 # Using the most basic model with highest free tier limits
 model = genai.GenerativeModel('gemini-2.0-flash-lite')
